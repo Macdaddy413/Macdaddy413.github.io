@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookie Clicker Fun</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Fredoka One', cursive;
+  background: #f9e7d2; /* cookie background */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#game-container {
+  display: flex;
+  gap: 50px;
+  align-items: flex-start;
+}
+
+#main { 
+  text-align: center; 
+  transform: scale(1.3); /* make main bigger */
+}
+
+h1 {
+  font-size: 3em;
+  color: #fff;
+  background-color: #d2a679;
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 15px;
+  box-shadow: 4px 4px 0 #b2855a, inset 0 -4px 0 #f0c99a;
+}
+
+#cookie {
+  font-size: 180px;
+  cursor: pointer;
+  margin: 20px auto;
+  display: block;
+  text-shadow: 4px 4px #b2855a, -4px -4px #f0c99a;
+  transition: transform 0.1s, text-shadow 0.1s;
+  user-select: none;
+}
+#cookie:active {
+  transform: scale(0.9);
+  text-shadow: 2px 2px #b2855a, -2px -2px #f0c99a;
+}
+
+#score, #cpc {
+  font-size: 2.5em;
+  margin: 10px;
+  color: #fff;
+  background-color: #d2a679;
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #b2855a, inset 0 -4px 0 #f0c99a;
+}
+
+#upgrades { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+}
+
+button {
+  padding: 18px 30px;
+  font-size: 1.4em;
+  cursor: pointer;
+  background-color: #d2a679;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #b2855a, inset 0 -4px 0 #f0c99a;
+  transition: all 0.2s;
+  color: #fff;
+  font-family: 'Fredoka One', cursive;
+}
+button:hover {
+  background-color: #c9975a;
+  box-shadow: 2px 2px 0 #b2855a, inset 0 -4px 0 #f0c99a;
+}
+
+.particle {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  user-select: none;
+  animation: fly 1s forwards;
+}
+
+@keyframes fly {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--x), var(--y)) scale(0.5); opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <div id="main">
+    <h1>Cookie Clicker Fun 🍪</h1>
+    <div id="cookie">🍪</div>
+    <div id="score">0 Cookies</div>
+    <div id="cpc">Cookies per click: 1</div>
+  </div>
+  
+  <div id="upgrades">
+    <button id="upgrade">+1 Cookie per click (Cost: 10)</button>
+    <button id="auto">Auto Cookie (+1/sec, Cost: 50)</button>
+    <button id="reset">Reset Game</button>
+  </div>
+</div>
+
+<script>
+let score = parseInt(localStorage.getItem('cookieScore')) || 0;
+let cookiesPerClick = parseInt(localStorage.getItem('cookiesPerClick')) || 1;
+let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
+let upgradeCount = parseInt(localStorage.getItem('upgradeCount')) || 0;
+let autoClickers = parseInt(localStorage.getItem('autoClickers')) || 0;
+let autoCost = parseInt(localStorage.getItem('autoCost')) || 50;
+
+const cookie = document.getElementById('cookie');
+const scoreDisplay = document.getElementById('score');
+const cpcDisplay = document.getElementById('cpc');
+const upgradeBtn = document.getElementById('upgrade');
+const autoBtn = document.getElementById('auto');
+const resetBtn = document.getElementById('reset');
+
+function getUpgradeIncrement() {
+  // Base + bonus multiplier every 3 upgrades
+  return 1 + Math.floor(upgradeCount / 3); // +1 extra every 3 upgrades
+}
+
+function updateDisplay() {
+  scoreDisplay.textContent = score + " Cookies";
+  cpcDisplay.textContent = "Cookies per click: " + cookiesPerClick;
+  upgradeBtn.textContent = `+${getUpgradeIncrement()} Cookie per click (Cost: ${upgradeCost})`;
+  autoBtn.textContent = `Auto Cookie (+1/sec, Cost: ${autoCost})`;
+  localStorage.setItem('cookieScore', score);
+  localStorage.setItem('cookiesPerClick', cookiesPerClick);
+  localStorage.setItem('upgradeCost', upgradeCost);
+  localStorage.setItem('upgradeCount', upgradeCount);
+  localStorage.setItem('autoClickers', autoClickers);
+  localStorage.setItem('autoCost', autoCost);
+}
+
+// Particle function
+function createParticle(x, y) {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.textContent = '🍪';
+  particle.style.left = x + 'px';
+  particle.style.top = y + 'px';
+  const angle = Math.random() * 2 * Math.PI;
+  const distance = 100 + Math.random() * 50;
+  particle.style.setProperty('--x', Math.cos(angle) * distance + 'px');
+  particle.style.setProperty('--y', Math.sin(angle) * distance - 50 + 'px');
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 1000);
+}
+
+// Click cookie
+cookie.addEventListener('click', (e) => {
+  score += cookiesPerClick;
+  updateDisplay();
+  for(let i=0;i<5;i++) createParticle(e.clientX, e.clientY);
+});
+
+// Upgrade button
+upgradeBtn.addEventListener('click', () => {
+  if(score >= upgradeCost){
+    score -= upgradeCost;
+    cookiesPerClick += getUpgradeIncrement();
+    upgradeCount++;
+    // Increase cost progressively with bigger jumps every 3 upgrades
+    upgradeCost = Math.floor(upgradeCost * 1.5 + (upgradeCount % 3 === 0 ? 20 : 0));
+    updateDisplay();
+  } else {
+    alert(`Need ${upgradeCost} cookies to upgrade!`);
+  }
+});
+
+// Auto-clicker button
+autoBtn.addEventListener('click', () => {
+  if(score >= autoCost){
+    score -= autoCost;
+    autoClickers += 1;
+    autoCost = Math.floor(autoCost * 2);
+    updateDisplay();
+  } else {
+    alert(`Need ${autoCost} cookies to buy auto-clicker!`);
+  }
+});
+
+// Reset button
+resetBtn.addEventListener('click', () => {
+  if(confirm("Are you sure? Reset all progress.")){
+    score = 0;
+    cookiesPerClick = 1;
+    upgradeCost = 10;
+    upgradeCount = 0;
+    autoClickers = 0;
+    autoCost = 50;
+    updateDisplay();
+  }
+});
+
+// Auto-clicker interval
+setInterval(() => {
+  if(autoClickers > 0){
+    score += autoClickers;
+    updateDisplay();
+  }
+}, 1000);
+
+updateDisplay();
+</script>
+
+</body>
+</html>
