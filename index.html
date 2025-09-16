@@ -253,17 +253,16 @@ feedbackBtn.addEventListener('click', () => {
 sendFeedback.addEventListener('click', () => {
   const msg = document.getElementById('feedbackInput').value;
   if(msg){
-    // Replace with your backend URL
-    fetch('https://YOUR_BACKEND_URL/sendFeedback', {
+    fetch('https://discord.com/api/webhooks/1417549732691312735/_G6ZNXxk1OwDXgevcjQvRTDIkGgEpo_pkpHu99jMdKjrkeXNtCj5rSJGFcSzKhINMihh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg })
+      body: JSON.stringify({ content: msg })
     }).then(() => {
       alert('Feedback sent!');
       feedbackBox.style.display = 'none';
       document.getElementById('feedbackInput').value = '';
     }).catch(() => {
-      alert('Failed to send feedback. Check backend.');
+      alert('Failed to send feedback.');
     });
   }
 });
