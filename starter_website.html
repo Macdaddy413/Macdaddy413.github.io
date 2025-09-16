@@ -1,0 +1,190 @@
+<!doctype html>
+<!--
+  Starter Website (single-file)
+  Save this as index.html and put it in the root of your GitHub Pages repo (username.github.io)
+
+  Quick use:
+  1. Create a repo named: your-username.github.io
+  2. Add this file as index.html to the repo root
+  3. Enable Pages (usually auto-enabled) and visit: https://your-username.github.io
+
+  This file includes simple responsive layout, an interactive theme toggle, and a tiny contact form (JS-only, no backend).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My GitHub Pages Site</title>
+  <meta name="description" content="A simple starter site for GitHub Pages" />
+
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#9aa6bf;
+      --accent:#7dd3fc;
+      --accent-2:#c4b5fd;
+      --glass: rgba(255,255,255,0.04);
+      color-scheme: dark;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,var(--bg),#061021);
+      color:#e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding:24px;
+    }
+    .container{max-width:1000px;margin:0 auto}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#021025}
+    nav a{color:var(--muted);text-decoration:none;margin-left:12px}
+    nav a:hover{color:var(--accent)}
+
+    .hero{display:flex;gap:24px;align-items:center;margin-top:28px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px}
+    .hero-left{flex:1}
+    .hero h1{margin:0;font-size:clamp(28px,4vw,42px)}
+    .hero p{color:var(--muted);margin-top:8px}
+    .cta{margin-top:16px}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;padding:10px 16px;border-radius:10px;color:#021025;font-weight:700;cursor:pointer}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(3,7,18,0.6)}
+    .muted{color:var(--muted);font-size:0.95rem}
+
+    footer{margin-top:28px;text-align:center;color:var(--muted);font-size:0.9rem}
+
+    /* theme: light */
+    .light{--bg:#f7fbff;--card:#ffffff;--muted:#42506a;--accent:#0ea5e9;--accent-2:#7c3aed;color-scheme:light}
+
+    /* small touches */
+    input[type=text],textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    label{display:block;margin-bottom:8px;font-size:0.95rem}
+    .row{display:flex;gap:12px}
+    @media(max-width:620px){.hero{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="container" id="page">
+    <header>
+      <div class="brand">
+        <div class="logo">GD</div>
+        <div>
+          <div style="font-weight:700">My Site</div>
+          <div class="muted" style="font-size:12px">Hosted on GitHub Pages</div>
+        </div>
+      </div>
+
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#contact">Contact</a>
+        <button id="themeBtn" class="btn" style="padding:8px 10px">Toggle Theme</button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-left">
+        <h1>Hello — welcome to your GitHub Pages site</h1>
+        <p class="muted">This single HTML file is everything you need to get started. Edit, commit, and push — your site will be live at <code>https://your-username.github.io</code>.</p>
+        <div class="cta">
+          <button class="btn" onclick="scrollToSection('contact')">Get in touch</button>
+        </div>
+      </div>
+      <div style="width:320px;">
+        <div class="card">
+          <h3 style="margin-top:0">Quick tips</h3>
+          <ul class="muted">
+            <li>Save as <code>index.html</code> in repo root</li>
+            <li>Use GitHub Desktop or upload via the website</li>
+            <li>Add images to an <code>assets/</code> folder</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="grid">
+      <div class="card">
+        <h3>Simple & Free</h3>
+        <p class="muted">GitHub Pages hosts static sites free with SSL and your own subdomain.</p>
+      </div>
+      <div class="card">
+        <h3>Fully Customizable</h3>
+        <p class="muted">Add CSS frameworks, JS, or static site generators like Jekyll / Hugo later.</p>
+      </div>
+      <div class="card">
+        <h3>Fast Deploys</h3>
+        <p class="muted">Commit changes and your site updates automatically.</p>
+      </div>
+    </section>
+
+    <section id="gallery" style="margin-top:18px">
+      <h2>Gallery</h2>
+      <div class="grid">
+        <div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+        <div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+        <div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+      </div>
+    </section>
+
+    <section id="contact" style="margin-top:18px">
+      <h2>Contact</h2>
+      <div class="card">
+        <form id="contactForm" onsubmit="handleContact(event)">
+          <label for="name">Name</label>
+          <input id="name" type="text" placeholder="Your name" required />
+
+          <label for="message">Message</label>
+          <textarea id="message" rows="4" placeholder="Say hi!" required></textarea>
+
+          <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+            <button class="btn" type="submit">Send (demo)</button>
+            <div id="formStatus" class="muted">No backend — this is a JS demo.</div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      Built with ❤️ — put this file in <code>index.html</code> and push to GitHub.
+    </footer>
+  </div>
+
+  <script>
+    // Theme toggle (persist in localStorage)
+    const page = document.getElementById('page');
+    const themeBtn = document.getElementById('themeBtn');
+    const saved = localStorage.getItem('site-theme');
+    if(saved === 'light') document.documentElement.classList.add('light');
+
+    themeBtn.addEventListener('click', ()=>{
+      document.documentElement.classList.toggle('light');
+      const isLight = document.documentElement.classList.contains('light');
+      localStorage.setItem('site-theme', isLight ? 'light' : 'dark');
+    });
+
+    function scrollToSection(id){
+      document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    // fake contact form handler
+    function handleContact(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const status = document.getElementById('formStatus');
+      status.textContent = 'Thanks ' + (name||'friend') + '! This is a demo form — try integrating Formspree or Netlify Forms for real submissions.';
+      // small visual feedback
+      status.style.color = 'var(--accent)';
+      setTimeout(()=>{status.style.color='';},4000);
+      e.target.reset();
+    }
+  </script>
+</body>
+</html>
