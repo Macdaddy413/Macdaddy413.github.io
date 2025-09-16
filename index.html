@@ -212,13 +212,19 @@ resetBtn.addEventListener('click', () => {
   }
 });
 
-// Secret code button
+// Secret code button with flexible amount
 secretBtn.addEventListener('click', () => {
   const code = prompt("Enter the secret password:");
   if(code === "MACDADDY"){
-    score += 10_000_000_000; // 10 billion cookies
-    updateDisplay();
-    alert("Secret unlocked! You got 10B cookies! 🍪🎉");
+    let amount = prompt("Enter how many cookies you want:");
+    amount = parseInt(amount);
+    if(!isNaN(amount) && amount > 0){
+      score += amount;
+      updateDisplay();
+      alert(`Secret unlocked! You got ${amount.toLocaleString()} cookies! 🍪🎉`);
+    } else {
+      alert("Invalid number!");
+    }
   } else {
     alert("Wrong password!");
   }
