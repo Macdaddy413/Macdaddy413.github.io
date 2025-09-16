@@ -87,6 +87,12 @@ button:hover {
   box-shadow: 2px 2px 0 #b2855a, inset 0 -4px 0 #f0c99a;
 }
 
+#feedbackBox input {
+  padding:10px;
+  width:200px;
+  margin-bottom:5px;
+}
+
 .particle {
   position: absolute;
   font-size: 24px;
@@ -116,6 +122,11 @@ button:hover {
     <button id="auto">Auto Cookie (+1/sec, Cost: 50)</button>
     <button id="reset">Reset Game</button>
     <button id="secret">Enter Secret Code</button>
+    <button id="feedbackBtn">Send Feedback</button>
+    <div id="feedbackBox" style="display:none;">
+      <input type="text" id="feedbackInput" placeholder="Type your feedback">
+      <button id="sendFeedback">Send</button>
+    </div>
   </div>
 </div>
 
@@ -134,6 +145,10 @@ const upgradeBtn = document.getElementById('upgrade');
 const autoBtn = document.getElementById('auto');
 const resetBtn = document.getElementById('reset');
 const secretBtn = document.getElementById('secret');
+
+const feedbackBtn = document.getElementById('feedbackBtn');
+const feedbackBox = document.getElementById('feedbackBox');
+const sendFeedback = document.getElementById('sendFeedback');
 
 function getUpgradeIncrement() {
   return 1 + Math.floor(upgradeCount / 3);
@@ -212,7 +227,7 @@ resetBtn.addEventListener('click', () => {
   }
 });
 
-// Secret code button with flexible amount
+// Secret code button
 secretBtn.addEventListener('click', () => {
   const code = prompt("Enter the secret password:");
   if(code === "MACDADDY"){
@@ -227,6 +242,29 @@ secretBtn.addEventListener('click', () => {
     }
   } else {
     alert("Wrong password!");
+  }
+});
+
+// Feedback button
+feedbackBtn.addEventListener('click', () => {
+  feedbackBox.style.display = 'block';
+});
+
+sendFeedback.addEventListener('click', () => {
+  const msg = document.getElementById('feedbackInput').value;
+  if(msg){
+    // Replace with your backend URL
+    fetch('https://YOUR_BACKEND_URL/sendFeedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    }).then(() => {
+      alert('Feedback sent!');
+      feedbackBox.style.display = 'none';
+      document.getElementById('feedbackInput').value = '';
+    }).catch(() => {
+      alert('Failed to send feedback. Check backend.');
+    });
   }
 });
 
