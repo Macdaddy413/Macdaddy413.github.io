@@ -121,7 +121,6 @@ button:hover {
     <button id="upgrade">+1 Cookie per click (Cost: 10)</button>
     <button id="auto">Auto Cookie (+1/sec, Cost: 50)</button>
     <button id="reset">Reset Game</button>
-    <button id="secret">Enter Secret Code</button>
     <button id="feedbackBtn">Send Feedback</button>
     <div id="feedbackBox" style="display:none;">
       <input type="text" id="feedbackInput" placeholder="Type your feedback">
@@ -144,8 +143,6 @@ const cpcDisplay = document.getElementById('cpc');
 const upgradeBtn = document.getElementById('upgrade');
 const autoBtn = document.getElementById('auto');
 const resetBtn = document.getElementById('reset');
-const secretBtn = document.getElementById('secret');
-
 const feedbackBtn = document.getElementById('feedbackBtn');
 const feedbackBox = document.getElementById('feedbackBox');
 const sendFeedback = document.getElementById('sendFeedback');
@@ -157,7 +154,12 @@ function getUpgradeIncrement() {
 function updateDisplay() {
   scoreDisplay.textContent = score + " Cookies";
   cpcDisplay.textContent = "Cookies per click: " + cookiesPerClick;
-  upgradeBtn.textContent = `+${getUpgradeIncrement()} Cookie per click (Cost: ${upgradeCost})`;
+  if (upgradeCount < 90) {
+    upgradeBtn.textContent = `+${getUpgradeIncrement()} Cookie per click (Cost: ${upgradeCost})`;
+  } else {
+    upgradeBtn.disabled = true;
+    upgradeBtn.textContent = "Click Booster (Maxed Out!)";
+  }
   autoBtn.textContent = `Auto Cookie (+1/sec, Cost: ${autoCost})`;
   localStorage.setItem('cookieScore', score);
   localStorage.setItem('cookiesPerClick', cookiesPerClick);
@@ -182,32 +184,95 @@ function createParticle(x, y) {
   setTimeout(() => particle.remove(), 1000);
 }
 
+// Golden Cookie Upgrade
+const goldenBtn = document.createElement("button");
+goldenBtn.textContent = "Unlock Golden Cookie Chance (Cost: 500)";
+document.getElementById("upgrades").appendChild(goldenBtn);
+let goldenUnlocked = false;
+
+goldenBtn.addEventListener("click", () => {
+  if (!goldenUnlocked && score >= 500) {
+    score -= 500;
+    goldenUnlocked = true;
+    goldenBtn.disabled = true;
+    goldenBtn.textContent = "Golden Cookie Chance: Active!";
+    updateDisplay();
+  }
+});
+
+// Try golden cookie spawn
+function tryGoldenCookie(x, y) {
+  if (goldenUnlocked && Math.random() < 0.02) {
+    const golden = document.createElement("div");
+    golden.className = "particle";
+    golden.textContent = "🌟";
+    golden.style.left = x + "px";
+    golden.style.top = y + "px";
+    golden.style.fontSize = "40px";
+    document.body.appendChild(golden);
+    golden.addEventListener("click", () => {
+      score += 100;
+      updateDisplay();
+      golden.remove();
+    });
+    setTimeout(() => golden.remove(), 4000);
+  }
+}
+
 // Click cookie
 cookie.addEventListener('click', (e) => {
   score += cookiesPerClick;
   updateDisplay();
   for(let i=0;i<5;i++) createParticle(e.clientX, e.clientY);
+  tryGoldenCookie(e.clientX, e.clientY);
 });
 
 // Upgrade button
 upgradeBtn.addEventListener('click', () => {
+  if (upgradeCount >= 90) {
+    upgradeBtn.disabled = true;
+    upgradeBtn.textContent = "Click Booster (Maxed Out!)";
+    return;
+  }
   if(score >= upgradeCost){
     score -= upgradeCost;
     cookiesPerClick += getUpgradeIncrement();
     upgradeCount++;
-    upgradeCost = Math.floor(upgradeCost * 1.5 + (upgradeCount % 3 === 0 ? 20 : 0));
+    upgradeCost = Math.floor(upgradeCost * 1.2 + 5);
+    if (upgradeCount >= 90) {
+      upgradeBtn.disabled = true;
+      upgradeBtn.textContent = "Click Booster (Maxed Out!)";
+    }
     updateDisplay();
   } else {
     alert(`Need ${upgradeCost} cookies to upgrade!`);
   }
 });
 
+// Auto-clicker cursor animation
+function spawnCursor() {
+  const cursor = document.createElement("div");
+  cursor.textContent = "🖱️";
+  cursor.style.position = "absolute";
+  cursor.style.fontSize = "30px";
+  cursor.style.left = (cookie.getBoundingClientRect().left + Math.random() * 100) + "px";
+  cursor.style.top = (cookie.getBoundingClientRect().top - 50 + Math.random() * 100) + "px";
+  cursor.style.transition = "transform 0.2s";
+  document.body.appendChild(cursor);
+
+  setInterval(() => {
+    cursor.style.transform = "scale(0.8)";
+    setTimeout(() => cursor.style.transform = "scale(1)", 200);
+  }, 1000);
+}
+
 // Auto-clicker button
 autoBtn.addEventListener('click', () => {
   if(score >= autoCost){
     score -= autoCost;
     autoClickers += 1;
-    autoCost = Math.floor(autoCost * 2);
+    autoCost = Math.floor(autoCost * 1.8);
+    spawnCursor();
     updateDisplay();
   } else {
     alert(`Need ${autoCost} cookies to buy auto-clicker!`);
@@ -223,25 +288,10 @@ resetBtn.addEventListener('click', () => {
     upgradeCount = 0;
     autoClickers = 0;
     autoCost = 50;
+    goldenUnlocked = false;
+    goldenBtn.disabled = false;
+    goldenBtn.textContent = "Unlock Golden Cookie Chance (Cost: 500)";
     updateDisplay();
-  }
-});
-
-// Secret code button
-secretBtn.addEventListener('click', () => {
-  const code = prompt("Enter the secret password:");
-  if(code === "MACDADDY"){
-    let amount = prompt("Enter how many cookies you want:");
-    amount = parseInt(amount);
-    if(!isNaN(amount) && amount > 0){
-      score += amount;
-      updateDisplay();
-      alert(`Secret unlocked! You got ${amount.toLocaleString()} cookies! 🍪🎉`);
-    } else {
-      alert("Invalid number!");
-    }
-  } else {
-    alert("Wrong password!");
   }
 });
 
