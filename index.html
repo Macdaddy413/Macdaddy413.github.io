@@ -13,7 +13,7 @@ body {
   padding: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -23,6 +23,7 @@ body {
   display: flex;
   gap: 50px;
   align-items: flex-start;
+  padding: 20px;
 }
 #main { 
   text-align: center; 
@@ -60,6 +61,8 @@ h1 {
   border-radius: 12px;
   box-shadow: 4px 4px 0 #b2855a, inset 0 -4px 0 #f0c99a;
 }
+
+/* --- Upgrades (scrollable) --- */
 #upgrades { 
   display: flex; 
   flex-direction: column; 
@@ -67,7 +70,20 @@ h1 {
   max-height: 500px;
   overflow-y: auto;
   padding-right: 10px;
+  scrollbar-width: thin;
 }
+#upgrades::-webkit-scrollbar {
+  width: 10px;
+}
+#upgrades::-webkit-scrollbar-thumb {
+  background: #c9975a;
+  border-radius: 10px;
+}
+#upgrades::-webkit-scrollbar-track {
+  background: #f9e7d2;
+}
+
+/* Buttons */
 button {
   padding: 14px 20px;
   font-size: 1.2em;
@@ -121,7 +137,7 @@ button:hover {
 }
 
 /* --- Login Modal --- */
-#loginModal {
+#loginModal, #leaderboardModal {
   position: fixed;
   top:0; left:0;
   width:100%; height:100%;
@@ -129,7 +145,7 @@ button:hover {
   display:flex; justify-content:center; align-items:center;
   z-index:9999;
 }
-#loginBox {
+#loginBox, #leaderboardBox {
   background: #f9e7d2;
   padding: 30px;
   border-radius: 20px;
@@ -137,13 +153,15 @@ button:hover {
   text-align: center;
   min-width: 300px;
 }
-#loginBox h2 { margin-bottom: 15px; }
+#loginBox h2, #leaderboardBox h2 { margin-bottom: 15px; }
 #tabs { display:flex; justify-content:center; gap:10px; margin-bottom:20px;}
 #tabs button { padding:6px 12px; border:none; border-radius:10px; cursor:pointer; background:#d2a679; color:#fff; font-family:'Fredoka One', cursive;}
 #tabs button.active { background:#c9975a; }
 #loginBox input { display:block; width:80%; padding:8px 10px; margin:10px auto; border-radius:10px; border:1px solid #b2855a; font-size:1em; }
-#submitLogin { padding:10px 20px; font-size:1.1em; background:#d2a679; border:none; border-radius:10px; cursor:pointer; color:#fff; font-family:'Fredoka One', cursive; }
-#submitLogin:hover { background:#c9975a; }
+#submitLogin, #closeLeaderboard, #logoutBtn { padding:10px 20px; font-size:1.1em; background:#d2a679; border:none; border-radius:10px; cursor:pointer; color:#fff; font-family:'Fredoka One', cursive; }
+#submitLogin:hover, #closeLeaderboard:hover, #logoutBtn:hover { background:#c9975a; }
+#leaderboardList { max-height:300px; overflow-y:auto; margin:15px 0; }
+#leaderboardList div { margin:5px 0; font-size:1.1em; }
 </style>
 </head>
 <body>
@@ -162,6 +180,15 @@ button:hover {
   </div>
 </div>
 
+<!-- --- Leaderboard Modal --- -->
+<div id="leaderboardModal">
+  <div id="leaderboardBox">
+    <h2>Leaderboard</h2>
+    <div id="leaderboardList"></div>
+    <button id="closeLeaderboard">Close</button>
+  </div>
+</div>
+
 <!-- --- Game --- -->
 <div id="game-container">
   <div id="main">
@@ -169,6 +196,7 @@ button:hover {
     <div id="cookie">🍪</div>
     <div id="score">0 Cookies</div>
     <div id="cpc">Cookies per click: 1</div>
+    <button id="logoutBtn">Log Out</button>
   </div>
   
   <div id="upgrades">
@@ -178,6 +206,7 @@ button:hover {
     <button id="factory">Factory (+20/sec, Cost: 1000)</button>
     <button id="mine">Cookie Mine (+100/sec, Cost: 5000)</button>
     <button id="codes">Codes</button>
+    <button id="leaderboardBtn">Leaderboard</button>
     <button id="reset">Reset Game</button>
   </div>
 </div>
@@ -204,7 +233,9 @@ const factoryBtn = document.getElementById('factory');
 const mineBtn = document.getElementById('mine');
 const resetBtn = document.getElementById('reset');
 const codesBtn = document.getElementById('codes');
+const leaderboardBtn = document.getElementById('leaderboardBtn');
 const goldenCookie = document.getElementById('goldenCookie');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // --- Login GUI ---
 const loginModal = document.getElementById('loginModal');
@@ -215,7 +246,7 @@ const usernameInput = document.getElementById('usernameInput');
 const passwordInput = document.getElementById('passwordInput');
 const submitLogin = document.getElementById('submitLogin');
 
-let isLoginMode = true; // login vs create
+let isLoginMode = true;
 
 loginTab.addEventListener('click', ()=>{
   isLoginMode=true; modalTitle.textContent="Login";
@@ -226,71 +257,67 @@ createTab.addEventListener('click', ()=>{
   createTab.classList.add('active'); loginTab.classList.remove('active');
 });
 
-// Load remembered user
-const rememberedUser = localStorage.getItem('currentUser');
-if(rememberedUser){
-  const users = JSON.parse(localStorage.getItem('users')||"{}");
-  if(users[rememberedUser]){
-    currentUser = rememberedUser;
-    loadUserData();
-    loginModal.style.display='none';
-  }
-}
-
 submitLogin.addEventListener('click', ()=>{
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
-  if(!username||!password) return alert("Enter both fields!");
-  const users = JSON.parse(localStorage.getItem('users')||"{}");
+  const username=usernameInput.value.trim();
+  const password=passwordInput.value.trim();
+  if(!username||!password){ alert("Fill both fields!"); return; }
+
+  let users=JSON.parse(localStorage.getItem('users')||"{}");
+  
   if(isLoginMode){
-    if(!users[username]||users[username].password!==password){ alert("Invalid login!"); return;}
-    currentUser=username; alert("Logged in as "+currentUser);
+    if(users[username] && users[username].password===password){
+      currentUser=username;
+      loadUserData();
+      loginModal.style.display='none';
+    } else { alert("Invalid username or password!"); }
   } else {
-    if(users[username]){ alert("Username exists!"); return; }
-    users[username]={password,data:{}};
-    localStorage.setItem('users',JSON.stringify(users));
-    currentUser=username; alert("Account created! Logged in as "+currentUser);
+    if(users[username]){ alert("Username already exists!"); return; }
+    users[username]={password, data:{score:0, cookiesPerClick:1, upgradeCount:0, autoClickers:0, grandmaCount:0, factoryCount:0, mineCount:0}};
+    localStorage.setItem('users', JSON.stringify(users));
+    alert("Account created! Login now.");
   }
-  localStorage.setItem('currentUser',currentUser);
-  loadUserData();
-  loginModal.style.display='none';
 });
 
-// --- User Data Functions ---
+// --- Log out ---
+logoutBtn.addEventListener('click', ()=>{
+  currentUser=null;
+  loginModal.style.display='flex';
+});
+
+// --- Load / Save User Data ---
+function loadUserData(){
+  const users=JSON.parse(localStorage.getItem('users')||"{}");
+  if(users[currentUser]){
+    const data=users[currentUser].data;
+    score=data.score; cookiesPerClick=data.cookiesPerClick; upgradeCount=data.upgradeCount;
+    autoClickers=data.autoClickers; autoCost=50*Math.pow(1.5,data.autoClickers);
+    grandmaCount=data.grandmaCount; grandmaCost=200*Math.pow(1.3,data.grandmaCount);
+    factoryCount=data.factoryCount; factoryCost=1000*Math.pow(1.3,data.factoryCount);
+    mineCount=data.mineCount; mineCost=5000*Math.pow(1.3,data.mineCount);
+    updateDisplay();
+  }
+}
+
 function saveUserData(){
   if(!currentUser) return;
-  const users = JSON.parse(localStorage.getItem('users')||"{}");
-  users[currentUser].data={score,cookiesPerClick,upgradeCost,upgradeCount,autoClickers,autoCost,grandmaCount,grandmaCost,factoryCount,factoryCost,mineCount,mineCost};
-  localStorage.setItem('users',JSON.stringify(users));
-}
-function loadUserData(){
-  const users = JSON.parse(localStorage.getItem('users')||"{}");
-  const data = users[currentUser]?.data || {};
-  score=data.score||0;
-  cookiesPerClick=data.cookiesPerClick||1;
-  upgradeCount=data.upgradeCount||0;
-  upgradeCost=data.upgradeCost||10;
-  autoClickers=data.autoClickers||0;
-  autoCost=data.autoCost||50;
-  grandmaCount=data.grandmaCount||0;
-  grandmaCost=data.grandmaCost||200;
-  factoryCount=data.factoryCount||0;
-  factoryCost=data.factoryCost||1000;
-  mineCount=data.mineCount||0;
-  mineCost=data.mineCost||5000;
-  updateDisplay();
+  const users=JSON.parse(localStorage.getItem('users')||"{}");
+  users[currentUser]={password:users[currentUser].password, data:{
+    score, cookiesPerClick, upgradeCount, autoClickers, grandmaCount, factoryCount, mineCount
+  }};
+  localStorage.setItem('users', JSON.stringify(users));
 }
 
 // --- Display ---
-function getUpgradeIncrement(){return 1+Math.floor(upgradeCount/3);}
+function getUpgradeIncrement(){ return 1 + Math.floor(upgradeCount/3); }
+
 function updateDisplay(){
-  scoreDisplay.textContent=score+" Cookies";
-  cpcDisplay.textContent="Cookies per click: "+cookiesPerClick;
-  upgradeBtn.textContent=`Click Booster (+${getUpgradeIncrement()} CPC, Cost: ${Math.floor(10*Math.pow(1.3,upgradeCount))})`;
-  autoBtn.textContent=`Auto Clicker (+1/sec, Cost: ${autoCost})`;
-  grandmaBtn.textContent=`Grandma (+5/sec, Cost: ${grandmaCost})`;
-  factoryBtn.textContent=`Factory (+20/sec, Cost: ${factoryCost})`;
-  mineBtn.textContent=`Cookie Mine (+100/sec, Cost: ${mineCost})`;
+  scoreDisplay.textContent = score + " Cookies";
+  cpcDisplay.textContent = "Cookies per click: " + cookiesPerClick;
+  upgradeBtn.textContent = `Click Booster (+${getUpgradeIncrement()} CPC, Cost: ${Math.floor(10*Math.pow(1.3,upgradeCount))})`;
+  autoBtn.textContent = `Auto Clicker (+1/sec, Cost: ${Math.floor(50*Math.pow(1.5,autoClickers))})`;
+  grandmaBtn.textContent = `Grandma (+5/sec, Cost: ${Math.floor(200*Math.pow(1.3,grandmaCount))})`;
+  factoryBtn.textContent = `Factory (+20/sec, Cost: ${Math.floor(1000*Math.pow(1.3,factoryCount))})`;
+  mineBtn.textContent = `Cookie Mine (+100/sec, Cost: ${Math.floor(5000*Math.pow(1.3,mineCount))})`;
   saveUserData();
 }
 
@@ -309,28 +336,25 @@ cookie.addEventListener('click',(e)=>{score+=cookiesPerClick; updateDisplay(); f
 
 // --- Upgrades ---
 upgradeBtn.addEventListener('click',()=>{
-  if(score>=Math.floor(10*Math.pow(1.3,upgradeCount))){
-    score-=Math.floor(10*Math.pow(1.3,upgradeCount));
-    cookiesPerClick+=getUpgradeIncrement();
-    upgradeCount++;
-    updateDisplay();
-  } else alert("Not enough cookies!");
+  const cost = Math.floor(10*Math.pow(1.3,upgradeCount));
+  if(score>=cost){ score-=cost; cookiesPerClick+=getUpgradeIncrement(); upgradeCount++; updateDisplay(); }
+  else alert(`Need ${cost} cookies!`);
 });
 autoBtn.addEventListener('click',()=>{
-  if(score>=autoCost){ score-=autoCost; autoClickers++; autoCost=Math.floor(autoCost*1.5); updateDisplay();}
-  else alert("Need "+autoCost+" cookies!");
+  const cost = Math.floor(50*Math.pow(1.5,autoClickers));
+  if(score>=cost){ score-=cost; autoClickers++; updateDisplay(); } else alert(`Need ${cost} cookies!`);
 });
 grandmaBtn.addEventListener('click',()=>{
-  if(score>=grandmaCost){ score-=grandmaCost; grandmaCount++; grandmaCost=Math.floor(grandmaCost*1.3); updateDisplay(); }
-  else alert("Need "+grandmaCost+" cookies!");
+  const cost = Math.floor(200*Math.pow(1.3,grandmaCount));
+  if(score>=cost){ score-=cost; grandmaCount++; updateDisplay(); } else alert(`Need ${cost} cookies!`);
 });
 factoryBtn.addEventListener('click',()=>{
-  if(score>=factoryCost){ score-=factoryCost; factoryCount++; factoryCost=Math.floor(factoryCost*1.3); updateDisplay(); }
-  else alert("Need "+factoryCost+" cookies!");
+  const cost = Math.floor(1000*Math.pow(1.3,factoryCount));
+  if(score>=cost){ score-=cost; factoryCount++; updateDisplay(); } else alert(`Need ${cost} cookies!`);
 });
 mineBtn.addEventListener('click',()=>{
-  if(score>=mineCost){ score-=mineCost; mineCount++; mineCost=Math.floor(mineCost*1.3); updateDisplay(); }
-  else alert("Need "+mineCost+" cookies!");
+  const cost = Math.floor(5000*Math.pow(1.3,mineCount));
+  if(score>=cost){ score-=cost; mineCount++; updateDisplay(); } else alert(`Need ${cost} cookies!`);
 });
 
 // --- Codes ---
@@ -346,9 +370,8 @@ codesBtn.addEventListener('click',()=>{
 // --- Reset ---
 resetBtn.addEventListener('click',()=>{
   if(confirm("Reset all progress?")){
-    score=0; cookiesPerClick=1; upgradeCount=0; upgradeCost=10;
-    autoClickers=0; autoCost=50; grandmaCount=0; grandmaCost=200;
-    factoryCount=0; factoryCost=1000; mineCount=0; mineCost=5000;
+    score=0; cookiesPerClick=1; upgradeCount=0;
+    autoClickers=0; grandmaCount=0; factoryCount=0; mineCount=0;
     updateDisplay();
   }
 });
@@ -376,7 +399,32 @@ setInterval(()=>{
   updateDisplay();
 },1000);
 
-updateDisplay();
+// --- Leaderboard ---
+const leaderboardModal = document.getElementById('leaderboardModal');
+const leaderboardList = document.getElementById('leaderboardList');
+const closeLeaderboard = document.getElementById('closeLeaderboard');
+
+leaderboardBtn.addEventListener('click', ()=>{
+  const users=JSON.parse(localStorage.getItem('users')||"{}");
+  const entries=[];
+  for(const user in users){
+    const cookies = users[user].data?.score || 0;
+    entries.push({user, cookies});
+  }
+  entries.sort((a,b)=>b.cookies-a.cookies);
+  leaderboardList.innerHTML="";
+  entries.forEach((e,i)=>{
+    const div=document.createElement('div');
+    div.textContent=`${i+1}. ${e.user} - ${e.cookies.toLocaleString()} Cookies`;
+    leaderboardList.appendChild(div);
+  });
+  leaderboardModal.style.display='flex';
+});
+
+closeLeaderboard.addEventListener('click',()=>{ leaderboardModal.style.display='none'; });
+
+// --- Start ---
+loginModal.style.display='flex';
 </script>
 </body>
 </html>
