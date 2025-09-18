@@ -1,266 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cookie Clicker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Fredoka One', cursive;
-      text-align: center;
-      background: #f2e6d9;
-      margin: 0;
-      padding: 20px;
-    }
-    #cookie {
-      font-size: 100px;
-      cursor: pointer;
-      margin: 20px 0;
-    }
-    button {
-      font-family: 'Fredoka One', cursive;
-      margin: 5px;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 10px;
-      border: none;
-      background-color: #ffcc66;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    #upgrades { margin: 20px 0; }
-    #feedbackBox { display: none; margin-top: 10px; }
-    #feedbackInput { width: 300px; height: 100px; }
-    .particle {
-      position: absolute;
-      pointer-events: none;
-      animation: float 1s ease-out forwards;
-    }
-    @keyframes float {
-      to {
-        transform: translate(var(--x), var(--y));
-        opacity: 0;
-      }
-    }
-  </style>
-</head>
-<body>
+<!doctype html>
+<h3 style="margin-top:0">Quick tips</h3>
+<ul class="muted">
+<li>Save as <code>index.html</code> in repo root</li>
+<li>Use GitHub Desktop or upload via the website</li>
+<li>Add images to an <code>assets/</code> folder</li>
+</ul>
+</div>
+</div>
+</section>
 
-  <h1 id="score"></h1>
-  <h2 id="cpc"></h2>
 
-  <div id="cookie">🍪</div>
+<section id="features" class="grid">
+<div class="card">
+<h3>Simple & Free</h3>
+<p class="muted">GitHub Pages hosts static sites free with SSL and your own subdomain.</p>
+</div>
+<div class="card">
+<h3>Fully Customizable</h3>
+<p class="muted">Add CSS frameworks, JS, or static site generators like Jekyll / Hugo later.</p>
+</div>
+<div class="card">
+<h3>Fast Deploys</h3>
+<p class="muted">Commit changes and your site updates automatically.</p>
+</div>
+</section>
 
-  <div id="upgrades">
-    <button id="upgrade"></button>
-    <button id="auto"></button>
-  </div>
 
-  <button id="reset">Reset</button>
-  <button id="secret">Secret</button>
-  <button id="feedbackBtn">Feedback</button>
+<section id="gallery" style="margin-top:18px">
+<h2>Gallery</h2>
+<div class="grid">
+<div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+<div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+<div class="card"> <div style="height:120px;background:var(--glass);border-radius:8px"></div><p class="muted">Image placeholder</p></div>
+</div>
+</section>
 
-  <div id="feedbackBox">
-    <textarea id="feedbackInput"></textarea><br>
-    <button id="sendFeedback">Send</button>
-  </div>
 
-  <div id="upgrades"></div>
+<section id="contact" style="margin-top:18px">
+<h2>Contact</h2>
+<div class="card">
+<form id="contactForm" onsubmit="handleContact(event)">
+<label for="name">Name</label>
+<input id="name" type="text" placeholder="Your name" required />
 
-  <script>
-    let score = parseInt(localStorage.getItem('cookieScore')) || 0;
-    let cookiesPerClick = parseInt(localStorage.getItem('cookiesPerClick')) || 1;
-    let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
-    let upgradeCount = parseInt(localStorage.getItem('upgradeCount')) || 0;
-    let autoClickers = parseInt(localStorage.getItem('autoClickers')) || 0;
-    let autoCost = parseInt(localStorage.getItem('autoCost')) || 50;
 
-    const cookie = document.getElementById('cookie');
-    const scoreDisplay = document.getElementById('score');
-    const cpcDisplay = document.getElementById('cpc');
-    const upgradeBtn = document.getElementById('upgrade');
-    const autoBtn = document.getElementById('auto');
-    const resetBtn = document.getElementById('reset');
-    const secretBtn = document.getElementById('secret');
-    const feedbackBtn = document.getElementById('feedbackBtn');
-    const feedbackBox = document.getElementById('feedbackBox');
-    const sendFeedback = document.getElementById('sendFeedback');
-    const upgradesContainer = document.getElementById('upgrades');
+<label for="message">Message</label>
+<textarea id="message" rows="4" placeholder="Say hi!" required></textarea>
 
-    // New upgrade buttons
-    const boostsHTML = `
-      <button id="goldenCookie">Golden Cookie (x2 CPC for 30s, Cost: 500)</button>
-      <button id="superAuto">Super Auto (+5/sec, Cost: 1000)</button>
-      <button id="megaCookie">Mega Cookie (+1000 instantly, Cost: 2000)</button>
-    `;
-    upgradesContainer.insertAdjacentHTML("beforeend", boostsHTML);
 
-    const goldenBtn = document.getElementById('goldenCookie');
-    const superAutoBtn = document.getElementById('superAuto');
-    const megaBtn = document.getElementById('megaCookie');
+<div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+<button class="btn" type="submit">Send (demo)</button>
+<div id="formStatus" class="muted">No backend — this is a JS demo.</div>
+</div>
+</form>
+</div>
+</section>
 
-    function getUpgradeIncrement() {
-      return 1 + Math.floor(upgradeCount / 3);
-    }
 
-    function updateDisplay() {
-      scoreDisplay.textContent = score + " Cookies";
-      cpcDisplay.textContent = "Cookies per click: " + cookiesPerClick;
+<footer>
+Built with ❤️ — put this file in <code>index.html</code> and push to GitHub.
+</footer>
+</div>
 
-      if (upgradeCount >= 50) {
-        upgradeBtn.textContent = "Out of Stock 🚫";
-        upgradeBtn.disabled = true;
-      } else {
-        upgradeBtn.disabled = false;
-        upgradeBtn.textContent = `+${getUpgradeIncrement()} Cookie per click (Cost: ${upgradeCost})`;
-      }
 
-      autoBtn.textContent = `Auto Cookie (+1/sec, Cost: ${autoCost})`;
+<script>
+// Theme toggle (persist in localStorage)
+const page = document.getElementById('page');
+const themeBtn = document.getElementById('themeBtn');
+const saved = localStorage.getItem('site-theme');
+if(saved === 'light') document.documentElement.classList.add('light');
 
-      localStorage.setItem('cookieScore', score);
-      localStorage.setItem('cookiesPerClick', cookiesPerClick);
-      localStorage.setItem('upgradeCost', upgradeCost);
-      localStorage.setItem('upgradeCount', upgradeCount);
-      localStorage.setItem('autoClickers', autoClickers);
-      localStorage.setItem('autoCost', autoCost);
-    }
 
-    // Particle effect
-    function createParticle(x, y) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.textContent = '🍪';
-      particle.style.left = x + 'px';
-      particle.style.top = y + 'px';
-      const angle = Math.random() * 2 * Math.PI;
-      const distance = 100 + Math.random() * 50;
-      particle.style.setProperty('--x', Math.cos(angle) * distance + 'px');
-      particle.style.setProperty('--y', Math.sin(angle) * distance - 50 + 'px');
-      document.body.appendChild(particle);
-      setTimeout(() => particle.remove(), 1000);
-    }
+themeBtn.addEventListener('click', ()=>{
+document.documentElement.classList.toggle('light');
+const isLight = document.documentElement.classList.contains('light');
+localStorage.setItem('site-theme', isLight ? 'light' : 'dark');
+});
 
-    // Click cookie
-    cookie.addEventListener('click', (e) => {
-      score += cookiesPerClick;
-      updateDisplay();
-      for (let i = 0; i < 5; i++) createParticle(e.clientX, e.clientY);
-    });
 
-    // Upgrade button
-    upgradeBtn.addEventListener('click', () => {
-      if (score >= upgradeCost && upgradeCount < 50) {
-        score -= upgradeCost;
-        cookiesPerClick += getUpgradeIncrement();
-        upgradeCount++;
-        upgradeCost = Math.floor(upgradeCost * 1.5 + (upgradeCount % 3 === 0 ? 20 : 0));
-        if (upgradeCount % 20 === 0) upgradeCost = Math.floor(upgradeCost * 1.05);
-        updateDisplay();
-      } else if (upgradeCount < 50) alert(`Need ${upgradeCost} cookies to upgrade!`);
-    });
+function scrollToSection(id){
+document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});
+}
 
-    // Auto-clicker button
-    autoBtn.addEventListener('click', () => {
-      if (score >= autoCost) {
-        score -= autoCost;
-        autoClickers += 1;
-        autoCost = Math.floor(autoCost * 2);
-        updateDisplay();
-      } else alert(`Need ${autoCost} cookies to buy auto-clicker!`);
-    });
 
-    // Golden Cookie
-    goldenBtn.addEventListener('click', () => {
-      if (score >= 500) {
-        score -= 500;
-        let oldCPC = cookiesPerClick;
-        cookiesPerClick *= 2;
-        updateDisplay();
-        alert("Golden Cookie Activated! 🍪✨ x2 CPC for 30 seconds!");
-        setTimeout(() => {
-          cookiesPerClick = oldCPC;
-          updateDisplay();
-          alert("Golden Cookie expired.");
-        }, 30000);
-      } else alert("Need 500 cookies for Golden Cookie!");
-    });
-
-    // Super Auto
-    superAutoBtn.addEventListener('click', () => {
-      if (score >= 1000) {
-        score -= 1000;
-        autoClickers += 5;
-        updateDisplay();
-        alert("Super Auto unlocked! +5/sec 🚀");
-      } else alert("Need 1000 cookies for Super Auto!");
-    });
-
-    // Mega Cookie
-    megaBtn.addEventListener('click', () => {
-      if (score >= 2000) {
-        score -= 2000;
-        score += 1000;
-        updateDisplay();
-        alert("Mega Cookie consumed! +1000 🍪💥");
-      } else alert("Need 2000 cookies for Mega Cookie!");
-    });
-
-    // Reset button
-    resetBtn.addEventListener('click', () => {
-      if (confirm("Are you sure? Reset all progress.")) {
-        score = 0;
-        cookiesPerClick = 1;
-        upgradeCost = 10;
-        upgradeCount = 0;
-        autoClickers = 0;
-        autoCost = 50;
-        updateDisplay();
-      }
-    });
-
-    // Secret code button
-    secretBtn.addEventListener('click', () => {
-      const code = prompt("Enter the secret password:");
-      if (code === "MACDADDY") {
-        let amount = parseInt(prompt("Enter how many cookies you want:"));
-        if (!isNaN(amount) && amount > 0) {
-          score += amount;
-          updateDisplay();
-          alert(`Secret unlocked! You got ${amount.toLocaleString()} cookies! 🍪🎉`);
-        } else alert("Invalid number!");
-      } else alert("Wrong password!");
-    });
-
-    // Feedback button
-    feedbackBtn.addEventListener('click', () => { feedbackBox.style.display = 'block'; });
-    sendFeedback.addEventListener('click', () => {
-      const msg = document.getElementById('feedbackInput').value;
-      if (msg) {
-        fetch('https://discord.com/api/webhooks/1417549732691312735/_G6ZNXxk1OwDXgevcjQvRTDIkGgEpo_pkpHu99jMdKjrkeXNtCj5rSJGFcSzKhINMihh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: msg })
-        }).then(() => {
-          alert('Feedback sent!');
-          feedbackBox.style.display = 'none';
-          document.getElementById('feedbackInput').value = '';
-        }).catch(() => alert('Failed to send feedback.'));
-      }
-    });
-
-    // Auto-clicker interval
-    setInterval(() => {
-      if (autoClickers > 0) {
-        score += autoClickers;
-        updateDisplay();
-      }
-    }, 1000);
-
-    updateDisplay();
-  </script>
-
+// fake contact form handler
+function handleContact(e){
+e.preventDefault();
+const name = document.getElementById('name').value.trim();
+const message = document.getElementById('message').value.trim();
+const status = document.getElementById('formStatus');
+status.textContent = 'Thanks ' + (name||'friend') + '! This is a demo form — try integrating Formspree or Netlify Forms for real submissions.';
+// small visual feedback
+status.style.color = 'var(--accent)';
+setTimeout(()=>{status.style.color='';},4000);
+e.target.reset();
+}
+</script>
 </body>
 </html>
