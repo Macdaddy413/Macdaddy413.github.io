@@ -3,93 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Undergoing Revamp</title>
+<title>🍪 Cookie Clicker Advanced</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 <style>
-    html, body {
+    body {
         margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
         font-family: 'Fredoka One', cursive;
+        background: linear-gradient(#fcebbf, #f9d9a3);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* Initial white blurry screen */
-    #overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
+    h1 {
+        color: #a85f2c;
+        margin: 20px 0;
+        font-size: 3em;
+        text-shadow: 1px 1px 2px #fff;
+    }
+
+    #cookie-container {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        margin-bottom: 20px;
+    }
+
+    #cookie {
         width: 100%;
         height: 100%;
-        background: white;
-        backdrop-filter: blur(20px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: opacity 1.5s ease;
-        z-index: 10;
+        background: url('https://i.imgur.com/6Rk0r5N.png') no-repeat center/contain;
+        cursor: pointer;
+        transition: transform 0.1s ease;
     }
 
-    /* Main content hidden initially */
-    #content {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: black;
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 2.5em;
-        opacity: 0;
-        transition: opacity 1.5s ease;
-        text-align: center;
-        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff00ff, 0 0 40px #ff00ff, 0 0 50px #ff00ff, 0 0 60px #ff00ff;
+    #cookie:active {
+        transform: scale(0.95);
     }
 
-    /* Show content */
-    #content.show {
-        opacity: 1;
-        animation: glow 2s infinite alternate;
-    }
-
-    /* Glow animation */
-    @keyframes glow {
-        0% {
-            text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff00ff, 0 0 40px #ff00ff, 0 0 50px #ff00ff, 0 0 60px #ff00ff;
-        }
-        100% {
-            text-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #ff00ff, 0 0 50px #ff00ff, 0 0 60px #ff00ff, 0 0 70px #ff00ff;
-        }
-    }
-
-    /* Fade out overlay */
-    #overlay.fade {
-        opacity: 0;
+    .crumb {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: #f2c94c;
+        border-radius: 50%;
         pointer-events: none;
+        animation: crumbFall 1s forwards;
+    }
+
+    @keyframes crumbFall {
+        0% {opacity:1; transform: translate(0,0) scale(1);}
+        100% {opacity:0; transform: translate(var(--x), 80px) scale(0);}
+    }
+
+    #score {
+        font-size: 2em;
+        color: #a85f2c;
+        text-shadow: 1px 1px 2px #fff;
+        margin-bottom: 20px;
+    }
+
+    .button {
+        background-color: #f5c46b;
+        border: 2px solid #a85f2c;
+        border-radius: 15px;
+        padding: 10px 20px;
+        font-family: 'Fredoka One', cursive;
+        font-size: 1.2em;
+        margin: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .button:hover {
+        background-color: #ffd88c;
+    }
+
+    #feedback {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #feedback textarea {
+        width: 300px;
+        height: 100px;
+        border-radius: 10px;
+        border: 2px solid #a85f2c;
+        padding: 10px;
+        font-family: 'Fredoka One', cursive;
+        resize: none;
+        margin-bottom: 10px;
+    }
+
+    #feedback button {
+        width: 150px;
+    }
+
+    @media (max-width: 500px) {
+        #cookie-container {width: 150px; height: 150px;}
+        h1 {font-size: 2em;}
+        #score {font-size: 1.5em;}
     }
 </style>
 </head>
 <body>
 
-<div id="overlay"></div>
+<h1>🍪 Cookie Clicker Advanced</h1>
 
-<div id="content">
-    Website Undergoing Revamp
+<div id="cookie-container">
+    <div id="cookie"></div>
+</div>
+<div id="score">0 Cookies</div>
+
+<div>
+    <button class="button" id="upgradeClick">Upgrade Click (+1) - Cost: 10</button>
+    <button class="button" id="buyAuto">Buy Auto Clicker - Cost: 50</button>
+</div>
+
+<div id="feedback">
+    <textarea id="feedbackText" placeholder="Send feedback..."></textarea>
+    <button class="button" id="sendFeedback">Send Feedback</button>
 </div>
 
 <script>
-    const overlay = document.getElementById('overlay');
-    const content = document.getElementById('content');
+    // --- Persistent Game State ---
+    let game = JSON.parse(localStorage.getItem('cookieGame')) || {
+        score: 0,
+        cookiesPerClick: 1,
+        clickUpgradeCost: 10,
+        autoClickers: 0,
+        autoClickerCost: 50
+    };
 
-    // When user clicks/taps
-    overlay.addEventListener('click', () => {
-        overlay.classList.add('fade');
-        content.classList.add('show');
+    const scoreEl = document.getElementById('score');
+    const cookie = document.getElementById('cookie');
+    const container = document.getElementById('cookie-container');
+    const upgradeClickBtn = document.getElementById('upgradeClick');
+    const buyAutoBtn = document.getElementById('buyAuto');
+
+    function saveGame() {
+        localStorage.setItem('cookieGame', JSON.stringify(game));
+    }
+
+    function updateDisplay() {
+        scoreEl.textContent = `${game.score} Cookies`;
+        upgradeClickBtn.textContent = `Upgrade Click (+1) - Cost: ${game.clickUpgradeCost}`;
+        buyAutoBtn.textContent = `Buy Auto Clicker - Cost: ${game.autoClickerCost}`;
+    }
+
+    function spawnCrumb(x, y) {
+        const crumb = document.createElement('div');
+        crumb.className = 'crumb';
+        crumb.style.left = `${x}px`;
+        crumb.style.top = `${y}px`;
+        crumb.style.setProperty('--x', `${Math.random()*40-20}px`);
+        container.appendChild(crumb);
+        setTimeout(()=>crumb.remove(),1000);
+    }
+
+    // --- Cookie Click ---
+    cookie.addEventListener('click', (e) => {
+        game.score += game.cookiesPerClick;
+        updateDisplay();
+        saveGame();
+        spawnCrumb(e.offsetX, e.offsetY);
     });
+
+    // --- Upgrade Click ---
+    upgradeClickBtn.addEventListener('click', () => {
+        if(game.score >= game.clickUpgradeCost){
+            game.score -= game.clickUpgradeCost;
+            game.cookiesPerClick += 1;
+            game.clickUpgradeCost = Math.floor(game.clickUpgradeCost * 1.3);
+            updateDisplay();
+            saveGame();
+        }
+    });
+
+    // --- Buy Auto Clicker ---
+    buyAutoBtn.addEventListener('click', () => {
+        if(game.score >= game.autoClickerCost){
+            game.score -= game.autoClickerCost;
+            game.autoClickers += 1;
+            game.autoClickerCost = Math.floor(game.autoClickerCost * 1.4);
+            updateDisplay();
+            saveGame();
+        }
+    });
+
+    // --- Auto Clicker Interval ---
+    setInterval(()=>{
+        if(game.autoClickers > 0){
+            game.score += game.autoClickers;
+            updateDisplay();
+            saveGame();
+        }
+    },1000);
+
+    updateDisplay();
+
+    // --- Feedback system ---
+    const feedbackText = document.getElementById('feedbackText');
+    const sendFeedbackBtn = document.getElementById('sendFeedback');
+    const webhookURL = "https://discord.com/api/webhooks/1417549732691312735/_G6ZNXxk1OwDXgevcjQvRTDIkGgEpo_pkpHu99jMdKjrkeXNtCj5rSJGFcSzKhINMihh";
+
+    sendFeedbackBtn.addEventListener('click', () => {
+        const content = feedbackText.value.trim();
+        if(content.length === 0) return alert('Please write some feedback.');
+        fetch(webhookURL, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ content })
+        }).then(()=>{
+            alert('Feedback sent! Thank you!');
+            feedbackText.value = '';
+        }).catch(()=>{
+            alert('Failed to send feedback.');
+        });
+    });
+
+    // --- Save periodically in case of crash ---
+    setInterval(saveGame,5000);
 </script>
 
 </body>
