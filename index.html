@@ -1,169 +1,219 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cookie Clicker Fun</title>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
-<style>
-body{font-family:'Fredoka One',cursive;background:#f9e7d2;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
-#game-wrapper{display:flex;flex-direction:column;align-items:center;width:95%;max-width:1200px;}
-#game-container{display:flex;flex-wrap:wrap;justify-content:center;gap:50px;width:100%;}
-#main{text-align:center;}
-h1{font-size:2.5em;color:#fff;background-color:#d2a679;display:inline-block;padding:10px 20px;border-radius:15px;box-shadow:4px 4px 0 #b2855a,inset 0 -4px 0 #f0c99a;margin-bottom:20px;}
-#cookie{font-size:150px;cursor:pointer;display:block;margin:20px auto;text-shadow:4px 4px #b2855a,-4px -4px #f0c99a;transition:transform 0.1s,text-shadow 0.1s;user-select:none;}
-#cookie:active{transform:scale(0.9);text-shadow:2px 2px #b2855a,-2px -2px #f0c99a;}
-#score,#cpc{font-size:1.8em;margin:10px 0;color:#fff;background-color:#d2a679;display:inline-block;padding:10px 20px;border-radius:12px;box-shadow:4px 4px 0 #b2855a,inset 0 -4px 0 #f0c99a;}
-#upgrades{display:flex;flex-direction:column;gap:15px;max-height:500px;overflow-y:auto;padding-right:5px;width:250px;}
-#upgrades::-webkit-scrollbar{width:10px;}
-#upgrades::-webkit-scrollbar-thumb{background:#c9975a;border-radius:10px;}
-#upgrades::-webkit-scrollbar-track{background:#f9e7d2;}
-button{padding:12px;font-size:1.1em;cursor:pointer;background-color:#d2a679;border:none;border-radius:12px;box-shadow:4px 4px 0 #b2855a,inset 0 -4px 0 #f0c99a;transition:0.2s;color:#fff;font-family:'Fredoka One',cursive;}
-button:hover{background-color:#c9975a;box-shadow:2px 2px 0 #b2855a,inset 0 -4px 0 #f0c99a;}
-.particle{position:absolute;font-size:24px;pointer-events:none;user-select:none;animation:fly 1s forwards;}
-@keyframes fly{0%{transform:translate(0,0) scale(1);opacity:1;}100%{transform:translate(var(--x),var(--y)) scale(0.5);opacity:0;}}
-.cursor{position:absolute;font-size:40px;pointer-events:none;animation:float 2s infinite ease-in-out;}
-@keyframes float{0%{transform:translateY(0);}50%{transform:translateY(-10px);}100%{transform:translateY(0);}}
-#goldenCookie{position:absolute;font-size:80px;display:none;cursor:pointer;animation:shine 1s infinite alternate;}
-@keyframes shine{from{transform:scale(1);}to{transform:scale(1.2);}}
-</style>
-</head>
-<body>
-<div id="game-wrapper">
-  <div id="game-container">
-    <div id="main">
-      <h1>Cookie Clicker Fun 🍪</h1>
-      <div id="cookie">🍪</div>
-      <div id="score">0 Cookies</div>
-      <div id="cpc">Cookies per click: 1</div>
-    </div>
-    <div id="upgrades">
-      <button id="upgrade">Click Booster (+1 CPC, Cost: 10)</button>
-      <button id="auto">Auto Clicker (+1/sec, Cost: 50)</button>
-      <button id="grandma">Grandma (+5/sec, Cost: 200)</button>
-      <button id="factory">Factory (+20/sec, Cost: 1000)</button>
-      <button id="mine">Cookie Mine (+100/sec, Cost: 5000)</button>
-      <button id="codes">Codes</button>
-      <button id="reset">Reset Game</button>
-    </div>
-  </div>
-</div>
-
-<div id="goldenCookie">✨🍪✨</div>
-
 <script>
-let score=parseInt(localStorage.getItem('cookieScore'))||0;
-let cookiesPerClick=parseInt(localStorage.getItem('cookiesPerClick'))||1;
-let upgradeCount=parseInt(localStorage.getItem('upgradeCount'))||0;
-let autoClickers=parseInt(localStorage.getItem('autoClickers'))||0;
-let grandmaCount=parseInt(localStorage.getItem('grandmaCount'))||0;
-let factoryCount=parseInt(localStorage.getItem('factoryCount'))||0;
-let mineCount=parseInt(localStorage.getItem('mineCount'))||0;
+let score = parseInt(localStorage.getItem('cookieScore')) || 0;
+let cookiesPerClick = parseInt(localStorage.getItem('cookiesPerClick')) || 1;
+let upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
+let upgradeCount = parseInt(localStorage.getItem('upgradeCount')) || 0;
+let autoClickers = parseInt(localStorage.getItem('autoClickers')) || 0;
+let autoCost = parseInt(localStorage.getItem('autoCost')) || 50;
 
-const cookie=document.getElementById('cookie');
-const scoreDisplay=document.getElementById('score');
-const cpcDisplay=document.getElementById('cpc');
-const upgradeBtn=document.getElementById('upgrade');
-const autoBtn=document.getElementById('auto');
-const grandmaBtn=document.getElementById('grandma');
-const factoryBtn=document.getElementById('factory');
-const mineBtn=document.getElementById('mine');
-const resetBtn=document.getElementById('reset');
-const codesBtn=document.getElementById('codes');
-const goldenCookie=document.getElementById('goldenCookie');
+const cookie = document.getElementById('cookie');
+const scoreDisplay = document.getElementById('score');
+const cpcDisplay = document.getElementById('cpc');
+const upgradeBtn = document.getElementById('upgrade');
+const autoBtn = document.getElementById('auto');
+const resetBtn = document.getElementById('reset');
+const secretBtn = document.getElementById('secret');
+const feedbackBtn = document.getElementById('feedbackBtn');
+const feedbackBox = document.getElementById('feedbackBox');
+const sendFeedback = document.getElementById('sendFeedback');
 
-function getUpgradeIncrement(){return 1+Math.floor(upgradeCount/3);}
-function updateDisplay(){
-  scoreDisplay.textContent=score+" Cookies";
-  cpcDisplay.textContent="Cookies per click: "+cookiesPerClick;
-  upgradeBtn.textContent=`Click Booster (+${getUpgradeIncrement()} CPC, Cost: ${Math.floor(10*Math.pow(1.3,upgradeCount))})`;
-  autoBtn.textContent=`Auto Clicker (+1/sec, Cost: ${Math.floor(50*Math.pow(1.5,autoClickers))})`;
-  grandmaBtn.textContent=`Grandma (+5/sec, Cost: ${Math.floor(200*Math.pow(1.3,grandmaCount))})`;
-  factoryBtn.textContent=`Factory (+20/sec, Cost: ${Math.floor(1000*Math.pow(1.3,factoryCount))})`;
-  mineBtn.textContent=`Cookie Mine (+100/sec, Cost: ${Math.floor(5000*Math.pow(1.3,mineCount))})`;
-  localStorage.setItem('cookieScore',score);
-  localStorage.setItem('cookiesPerClick',cookiesPerClick);
-  localStorage.setItem('upgradeCount',upgradeCount);
-  localStorage.setItem('autoClickers',autoClickers);
-  localStorage.setItem('grandmaCount',grandmaCount);
-  localStorage.setItem('factoryCount',factoryCount);
-  localStorage.setItem('mineCount',mineCount);
+// New upgrade buttons
+const boostsHTML = `
+  <button id="goldenCookie">Golden Cookie (x2 CPC for 30s, Cost: 500)</button>
+  <button id="superAuto">Super Auto (+5/sec, Cost: 1000)</button>
+  <button id="megaCookie">Mega Cookie (+1000 instantly, Cost: 2000)</button>
+`;
+document.getElementById('upgrades').insertAdjacentHTML("beforeend", boostsHTML);
+
+const goldenBtn = document.getElementById('goldenCookie');
+const superAutoBtn = document.getElementById('superAuto');
+const megaBtn = document.getElementById('megaCookie');
+
+function getUpgradeIncrement() {
+  return 1 + Math.floor(upgradeCount / 3);
 }
 
-// Particle
-function createParticle(x,y){const p=document.createElement('div');p.className='particle';p.textContent='🍪';p.style.left=x+'px';p.style.top=y+'px';const angle=Math.random()*2*Math.PI,distance=100+Math.random()*50;p.style.setProperty('--x',Math.cos(angle)*distance+'px');p.style.setProperty('--y',Math.sin(angle)*distance-50+'px');document.body.appendChild(p);setTimeout(()=>p.remove(),1000);}
+function updateDisplay() {
+  scoreDisplay.textContent = score + " Cookies";
+  cpcDisplay.textContent = "Cookies per click: " + cookiesPerClick;
 
-// Cookie click
-cookie.addEventListener('click',(e)=>{score+=cookiesPerClick;updateDisplay();for(let i=0;i<5;i++)createParticle(e.clientX,e.clientY);});
+  if (upgradeCount >= 50) {
+    upgradeBtn.textContent = "Out of Stock 🚫";
+    upgradeBtn.disabled = true;
+  } else {
+    upgradeBtn.disabled = false;
+    upgradeBtn.textContent = `+${getUpgradeIncrement()} Cookie per click (Cost: ${upgradeCost})`;
+  }
 
-// Upgrades
-upgradeBtn.addEventListener('click',()=>{
-  let cost=Math.floor(10*Math.pow(1.3,upgradeCount));
-  if(score>=cost){score-=cost;cookiesPerClick+=getUpgradeIncrement();upgradeCount++;updateDisplay();}
-  else alert(`Need ${cost} cookies!`);
-});
-autoBtn.addEventListener('click',()=>{
-  let cost=Math.floor(50*Math.pow(1.5,autoClickers));
-  if(score>=cost){score-=cost;autoClickers++;updateDisplay();}
-  else alert(`Need ${cost} cookies!`);
-});
-grandmaBtn.addEventListener('click',()=>{
-  let cost=Math.floor(200*Math.pow(1.3,grandmaCount));
-  if(score>=cost){score-=cost;grandmaCount++;updateDisplay();}
-  else alert(`Need ${cost} cookies!`);
-});
-factoryBtn.addEventListener('click',()=>{
-  let cost=Math.floor(1000*Math.pow(1.3,factoryCount));
-  if(score>=cost){score-=cost;factoryCount++;updateDisplay();}
-  else alert(`Need ${cost} cookies!`);
-});
-mineBtn.addEventListener('click',()=>{
-  let cost=Math.floor(5000*Math.pow(1.3,mineCount));
-  if(score>=cost){score-=cost;mineCount++;updateDisplay();}
-  else alert(`Need ${cost} cookies!`);
-});
+  autoBtn.textContent = `Auto Cookie (+1/sec, Cost: ${autoCost})`;
 
-// Codes
-codesBtn.addEventListener('click',()=>{
-  let code=prompt("Enter code:");
-  if(!code)return;
-  if(code.toLowerCase()==="free100"){score+=100;alert("You got 100 cookies!");}
-  else if(code.toLowerCase()==="boost"){cookiesPerClick+=5;alert("Cookies per click +5!");}
-  else alert("Invalid code!");
+  localStorage.setItem('cookieScore', score);
+  localStorage.setItem('cookiesPerClick', cookiesPerClick);
+  localStorage.setItem('upgradeCost', upgradeCost);
+  localStorage.setItem('upgradeCount', upgradeCount);
+  localStorage.setItem('autoClickers', autoClickers);
+  localStorage.setItem('autoCost', autoCost);
+}
+
+// Particle effect
+function createParticle(x, y) {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.textContent = '🍪';
+  particle.style.left = x + 'px';
+  particle.style.top = y + 'px';
+
+  const angle = Math.random() * 2 * Math.PI;
+  const distance = 100 + Math.random() * 50;
+  particle.style.setProperty('--x', Math.cos(angle) * distance + 'px');
+  particle.style.setProperty('--y', Math.sin(angle) * distance - 50 + 'px');
+
+  document.body.appendChild(particle);
+  setTimeout(() => particle.remove(), 1000);
+}
+
+// Click cookie
+cookie.addEventListener('click', (e) => {
+  score += cookiesPerClick;
   updateDisplay();
+  for (let i = 0; i < 5; i++) createParticle(e.clientX, e.clientY);
 });
 
-// Reset
-resetBtn.addEventListener('click',()=>{
-  if(confirm("Reset all progress?")){
-    score=0;cookiesPerClick=1;upgradeCount=0;autoClickers=0;grandmaCount=0;factoryCount=0;mineCount=0;
+// Upgrade button
+upgradeBtn.addEventListener('click', () => {
+  if (score >= upgradeCost && upgradeCount < 50) {
+    score -= upgradeCost;
+    cookiesPerClick += getUpgradeIncrement();
+    upgradeCount++;
+
+    // Price increase formula
+    upgradeCost = Math.floor(upgradeCost * 1.5 + (upgradeCount % 3 === 0 ? 20 : 0));
+
+    // Every 20 upgrades → price rises an extra +5%
+    if (upgradeCount % 20 === 0) {
+      upgradeCost = Math.floor(upgradeCost * 1.05);
+    }
+
+    updateDisplay();
+  } else if (upgradeCount < 50) {
+    alert(`Need ${upgradeCost} cookies to upgrade!`);
+  }
+});
+
+// Auto-clicker button
+autoBtn.addEventListener('click', () => {
+  if (score >= autoCost) {
+    score -= autoCost;
+    autoClickers += 1;
+    autoCost = Math.floor(autoCost * 2);
+    updateDisplay();
+  } else {
+    alert(`Need ${autoCost} cookies to buy auto-clicker!`);
+  }
+});
+
+// Golden Cookie (x2 CPC for 30s)
+goldenBtn.addEventListener('click', () => {
+  if (score >= 500) {
+    score -= 500;
+    let oldCPC = cookiesPerClick;
+    cookiesPerClick *= 2;
+    updateDisplay();
+    alert("Golden Cookie Activated! 🍪✨ x2 CPC for 30 seconds!");
+    setTimeout(() => {
+      cookiesPerClick = oldCPC;
+      updateDisplay();
+      alert("Golden Cookie expired.");
+    }, 30000);
+  } else {
+    alert("Need 500 cookies for Golden Cookie!");
+  }
+});
+
+// Super Auto (+5 per sec)
+superAutoBtn.addEventListener('click', () => {
+  if (score >= 1000) {
+    score -= 1000;
+    autoClickers += 5;
+    updateDisplay();
+    alert("Super Auto unlocked! +5/sec 🚀");
+  } else {
+    alert("Need 1000 cookies for Super Auto!");
+  }
+});
+
+// Mega Cookie (+1000 instantly)
+megaBtn.addEventListener('click', () => {
+  if (score >= 2000) {
+    score -= 2000;
+    score += 1000;
+    updateDisplay();
+    alert("Mega Cookie consumed! +1000 🍪💥");
+  } else {
+    alert("Need 2000 cookies for Mega Cookie!");
+  }
+});
+
+// Reset button
+resetBtn.addEventListener('click', () => {
+  if (confirm("Are you sure? Reset all progress.")) {
+    score = 0;
+    cookiesPerClick = 1;
+    upgradeCost = 10;
+    upgradeCount = 0;
+    autoClickers = 0;
+    autoCost = 50;
     updateDisplay();
   }
 });
 
-// Golden Cookie
-goldenCookie.addEventListener('click',()=>{
-  let reward=50+upgradeCount*20+autoClickers*10+grandmaCount*50+factoryCount*200+mineCount*1000+Math.floor(Math.random()*200);
-  score+=reward;updateDisplay();alert("Golden Cookie! You got "+reward+" cookies!");goldenCookie.style.display='none';
-});
-setInterval(()=>{
-  if(Math.random()<0.05 && goldenCookie.style.display==='none'){
-    let x=Math.random()*(window.innerWidth-100),y=Math.random()*(window.innerHeight-100);
-    goldenCookie.style.left=x+"px";goldenCookie.style.top=y+"px";goldenCookie.style.display='block';
-    setTimeout(()=>goldenCookie.style.display='none',8000);
+// Secret code button
+secretBtn.addEventListener('click', () => {
+  const code = prompt("Enter the secret password:");
+  if (code === "MACDADDY") {
+    let amount = prompt("Enter how many cookies you want:");
+    amount = parseInt(amount);
+    if (!isNaN(amount) && amount > 0) {
+      score += amount;
+      updateDisplay();
+      alert(`Secret unlocked! You got ${amount.toLocaleString()} cookies! 🍪🎉`);
+    } else {
+      alert("Invalid number!");
+    }
+  } else {
+    alert("Wrong password!");
   }
-},5000);
+});
 
-// Auto income
-setInterval(()=>{
-  if(autoClickers>0)score+=autoClickers;
-  if(grandmaCount>0)score+=grandmaCount*5;
-  if(factoryCount>0)score+=factoryCount*20;
-  if(mineCount>0)score+=mineCount*100;
-  updateDisplay();
-},1000);
+// Feedback button
+feedbackBtn.addEventListener('click', () => {
+  feedbackBox.style.display = 'block';
+});
+
+sendFeedback.addEventListener('click', () => {
+  const msg = document.getElementById('feedbackInput').value;
+  if (msg) {
+    fetch('https://discord.com/api/webhooks/1417549732691312735/_G6ZNXxk1OwDXgevcjQvRTDIkGgEpo_pkpHu99jMdKjrkeXNtCj5rSJGFcSzKhINMihh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: msg })
+    }).then(() => {
+      alert('Feedback sent!');
+      feedbackBox.style.display = 'none';
+      document.getElementById('feedbackInput').value = '';
+    }).catch(() => {
+      alert('Failed to send feedback.');
+    });
+  }
+});
+
+// Auto-clicker interval
+setInterval(() => {
+  if (autoClickers > 0) {
+    score += autoClickers;
+    updateDisplay();
+  }
+}, 1000);
 
 updateDisplay();
 </script>
-</body>
-</html>
